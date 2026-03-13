@@ -1,32 +1,33 @@
+# Heliton
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
 # Domain Schemas
-from domain.schemas.ProdutoSchema import (
+from src.domain.schemas.ProdutoSchema import (
     ProdutoCreate,
     ProdutoUpdate,
     ProdutoResponse
 )
 
+from src.infra.orm.ProdutoModel import ProdutoDB
+
 # Infra
-from infra.orm.ProdutoModel import ProdutoDB
-from infra.database import get_db
+from src.infra.orm.ProdutoModel import ProdutoDB
+from src.infra.database import get_db
 
 router = APIRouter()
 
+# Criar as rotas/endpoints: GET, POST, PUT, DELETE
 
-@router.get(
-    "/produto/",
-    response_model=List[ProdutoResponse],
-    tags=["Produto"],
-    status_code=status.HTTP_200_OK
-)
-async def get_produtos(db: Session = Depends(get_db)):
+
+@router.get("/produto/", response_model=List[ProdutoResponse], tags=["Produto"], status_code=status.HTTP_200_OK)
+async def get_produto(db: Session = Depends(get_db)):
     """Retorna todos os produtos"""
     try:
         produtos = db.query(ProdutoDB).all()
         return produtos
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -34,12 +35,7 @@ async def get_produtos(db: Session = Depends(get_db)):
         )
 
 
-@router.get(
-    "/produto/{id}",
-    response_model=ProdutoResponse,
-    tags=["Produto"],
-    status_code=status.HTTP_200_OK
-)
+@router.get("/produto/{id}", response_model=ProdutoResponse, tags=["Produto"], status_code=status.HTTP_200_OK)
 async def get_produto(id: int, db: Session = Depends(get_db)):
     """Retorna um produto específico pelo ID"""
     try:
@@ -62,20 +58,17 @@ async def get_produto(id: int, db: Session = Depends(get_db)):
         )
 
 
-@router.post(
-    "/produto/",
-    response_model=ProdutoResponse,
-    status_code=status.HTTP_201_CREATED,
-    tags=["Produto"]
-)
+@router.post("/produto/", response_model=ProdutoResponse, status_code=status.HTTP_201_CREATED, tags=["Produto"])
 async def post_produto(produto_data: ProdutoCreate, db: Session = Depends(get_db)):
     """Cria um novo produto"""
     try:
+
         novo_produto = ProdutoDB(
             id=None,
             nome=produto_data.nome,
             descricao=produto_data.descricao,
-            foto_produto=produto_data.foto_produto
+            foto=produto_data.foto,
+            valor_unitario=produto_data.valor_unitario
         )
 
         db.add(novo_produto)
@@ -92,12 +85,7 @@ async def post_produto(produto_data: ProdutoCreate, db: Session = Depends(get_db
         )
 
 
-@router.put(
-    "/produto/{id}",
-    response_model=ProdutoResponse,
-    tags=["Produto"],
-    status_code=status.HTTP_200_OK
-)
+@router.put("/produto/{id}", response_model=ProdutoResponse, tags=["Produto"], status_code=status.HTTP_200_OK)
 async def put_produto(id: int, produto_data: ProdutoUpdate, db: Session = Depends(get_db)):
     """Atualiza um produto existente"""
     try:
@@ -129,12 +117,7 @@ async def put_produto(id: int, produto_data: ProdutoUpdate, db: Session = Depend
         )
 
 
-@router.delete(
-    "/produto/{id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    tags=["Produto"],
-    summary="Remover produto"
-)
+@router.delete("/produto/{id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Produto"], summary="Remover produto")
 async def delete_produto(id: int, db: Session = Depends(get_db)):
     """Remove um produto"""
     try:

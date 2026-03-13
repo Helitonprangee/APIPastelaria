@@ -4,16 +4,16 @@
 GET http://localhost:8000/cliente/ HTTP/1.1
 
 ### Verbo GET – listar um
-GET http://localhost:8000/cliente/10 HTTP/1.1
+GET http://localhost:8000/cliente/1 HTTP/1.1
 
 ### Verbo POST – adicionar
 POST http://127.0.0.1:8000/cliente/ HTTP/1.1
 Content-Type: application/json
 
 {
-    "nome": "Heliton",
-    "cpf": "12345678901",
-    "telefone": "11999998888"
+    "nome": "Heliton22222",
+    "cpf": "12345671196",
+    "telefone": "11999831289"
 }
 
 ### Verbo PUT – atualiza

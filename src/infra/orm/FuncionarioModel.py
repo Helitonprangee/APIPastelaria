@@ -1,4 +1,5 @@
-from infra import database
+# Heliton
+from src.infra import database
 from sqlalchemy import Column, VARCHAR, CHAR, Integer
 
 # ORM
@@ -13,11 +14,11 @@ class FuncionarioDB(database.Base):
     grupo = Column(Integer, nullable=False)
     senha = Column(VARCHAR(200), nullable=False)
     
-    def __init__(self, id, nome, matricula, cpf, telefone, grupo, senha):
-        self.id = id
-        self.nome = nome
-        self.matricula = matricula
-        self.cpf = cpf
-        self.telefone = telefone
-        self.grupo = grupo
-        self.senha = senha
+def __init__(self, id, nome, matricula, cpf, telefone, grupo, senha):
+    self.id = id
+    self.nome = nome
+    self.matricula = matricula
+    self.cpf = cpf
+    self.telefone = telefone
+    self.grupo = grupo
+    self.senha = senha

@@ -11,12 +11,12 @@ POST http://127.0.0.1:8000/funcionario/ HTTP/1.1
 Content-Type: application/json
 
 {
-    "nome": "Heliton",
-    "matricula": "152093",
-    "cpf": "000.000.000-00",
-    "telefone": "(11) 99999-9999",
+    "nome": "Heliton123",
+    "matricula": "153093",
+    "cpf": "000.001.000-00",
+    "telefone": "(12) 99999-9999",
     "grupo": 1,
-    "senha": "senha123"
+    "senha": "senha1223"
 }
 
 
@@ -35,4 +35,4 @@ Content-Type: application/json
 
 
 ### Verbo DELETE - excluir
-DELETE http://127.0.0.1:8000/funcionario/3 HTTP/1.1
+DELETE http://127.0.0.1:8000/funcionario/2 HTTP/1.1

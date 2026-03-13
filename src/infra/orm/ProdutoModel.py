@@ -1,11 +1,21 @@
-from sqlalchemy import Column, Integer, String, Float, LargeBinary
-from infra.database import Base
+# Heliton
+from src.infra import database
+from sqlalchemy import Column, VARCHAR, Integer, Float, LargeBinary
 
-class ProdutoDB(Base):
-    __tablename__ = "produto"
+# ORM
+class ProdutoDB(database.Base):
+    __tablename__ = 'tb_produto'
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    nome = Column(String(255), nullable=False, index=True)
-    descricao = Column(String(255), nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    nome = Column(VARCHAR(100), nullable=False)
+    descricao = Column(VARCHAR(200), nullable=False)
     foto = Column(LargeBinary, nullable=True)
     valor_unitario = Column(Float, nullable=False)
+
+
+    def __init__(self, id, nome, descricao, foto, valor_unitario):
+        self.id = id
+        self.nome = nome
+        self.descricao = descricao
+        self.foto = foto
+        self.valor_unitario = valor_unitario
