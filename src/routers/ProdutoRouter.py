@@ -3,7 +3,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
-# Domain Schemas
 from src.domain.schemas.ProdutoSchema import (
     ProdutoCreate,
     ProdutoUpdate,
@@ -11,134 +10,92 @@ from src.domain.schemas.ProdutoSchema import (
 )
 
 from src.infra.orm.ProdutoModel import ProdutoDB
-
-# Infra
-from src.infra.orm.ProdutoModel import ProdutoDB
 from src.infra.database import get_db
+
+#  IMPORTANTE
+from src.infra.dependencies import get_current_active_user
+from src.domain.schemas.AuthSchema import FuncionarioAuth
 
 router = APIRouter()
 
-# Criar as rotas/endpoints: GET, POST, PUT, DELETE
+
+#  ROTA PÚBLICA (IMPORTANTE PRA ATIVIDADE)
+@router.get("/produto/publico", response_model=List[ProdutoResponse], tags=["Produto"])
+async def get_produto_publico(db: Session = Depends(get_db)):
+    return db.query(ProdutoDB).all()
 
 
-@router.get("/produto/", response_model=List[ProdutoResponse], tags=["Produto"], status_code=status.HTTP_200_OK)
-async def get_produto(db: Session = Depends(get_db)):
-    """Retorna todos os produtos"""
-    try:
-        produtos = db.query(ProdutoDB).all()
-        return produtos
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erro ao buscar produtos: {str(e)}"
-        )
+# 🔒 PROTEGIDAS
+@router.get("/produto/", response_model=List[ProdutoResponse], tags=["Produto"])
+async def get_produto(
+    db: Session = Depends(get_db),
+    current_user: FuncionarioAuth = Depends(get_current_active_user)
+):
+    return db.query(ProdutoDB).all()
 
 
-@router.get("/produto/{id}", response_model=ProdutoResponse, tags=["Produto"], status_code=status.HTTP_200_OK)
-async def get_produto(id: int, db: Session = Depends(get_db)):
-    """Retorna um produto específico pelo ID"""
-    try:
-        produto = db.query(ProdutoDB).filter(ProdutoDB.id == id).first()
+@router.get("/produto/{id}", response_model=ProdutoResponse, tags=["Produto"])
+async def get_produto_id(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: FuncionarioAuth = Depends(get_current_active_user)
+):
+    produto = db.query(ProdutoDB).filter(ProdutoDB.id == id).first()
 
-        if not produto:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Produto não encontrado"
-            )
+    if not produto:
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
 
-        return produto
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erro ao buscar produto: {str(e)}"
-        )
+    return produto
 
 
-@router.post("/produto/", response_model=ProdutoResponse, status_code=status.HTTP_201_CREATED, tags=["Produto"])
-async def post_produto(produto_data: ProdutoCreate, db: Session = Depends(get_db)):
-    """Cria um novo produto"""
-    try:
+@router.post("/produto/", response_model=ProdutoResponse, tags=["Produto"])
+async def post_produto(
+    produto_data: ProdutoCreate,
+    db: Session = Depends(get_db),
+    current_user: FuncionarioAuth = Depends(get_current_active_user)
+):
+    novo_produto = ProdutoDB(**produto_data.model_dump())
 
-        novo_produto = ProdutoDB(
-            id=None,
-            nome=produto_data.nome,
-            descricao=produto_data.descricao,
-            foto=produto_data.foto,
-            valor_unitario=produto_data.valor_unitario
-        )
+    db.add(novo_produto)
+    db.commit()
+    db.refresh(novo_produto)
 
-        db.add(novo_produto)
-        db.commit()
-        db.refresh(novo_produto)
-
-        return novo_produto
-
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erro ao criar produto: {str(e)}"
-        )
+    return novo_produto
 
 
-@router.put("/produto/{id}", response_model=ProdutoResponse, tags=["Produto"], status_code=status.HTTP_200_OK)
-async def put_produto(id: int, produto_data: ProdutoUpdate, db: Session = Depends(get_db)):
-    """Atualiza um produto existente"""
-    try:
-        produto = db.query(ProdutoDB).filter(ProdutoDB.id == id).first()
+@router.put("/produto/{id}", response_model=ProdutoResponse, tags=["Produto"])
+async def put_produto(
+    id: int,
+    produto_data: ProdutoUpdate,
+    db: Session = Depends(get_db),
+    current_user: FuncionarioAuth = Depends(get_current_active_user)
+):
+    produto = db.query(ProdutoDB).filter(ProdutoDB.id == id).first()
 
-        if not produto:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Produto não encontrado"
-            )
+    if not produto:
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
 
-        update_data = produto_data.model_dump(exclude_unset=True)
+    for field, value in produto_data.model_dump(exclude_unset=True).items():
+        setattr(produto, field, value)
 
-        for field, value in update_data.items():
-            setattr(produto, field, value)
+    db.commit()
+    db.refresh(produto)
 
-        db.commit()
-        db.refresh(produto)
-
-        return produto
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erro ao atualizar produto: {str(e)}"
-        )
+    return produto
 
 
-@router.delete("/produto/{id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Produto"], summary="Remover produto")
-async def delete_produto(id: int, db: Session = Depends(get_db)):
-    """Remove um produto"""
-    try:
-        produto = db.query(ProdutoDB).filter(ProdutoDB.id == id).first()
+@router.delete("/produto/{id}", tags=["Produto"])
+async def delete_produto(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user: FuncionarioAuth = Depends(get_current_active_user)
+):
+    produto = db.query(ProdutoDB).filter(ProdutoDB.id == id).first()
 
-        if not produto:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Produto não encontrado"
-            )
+    if not produto:
+        raise HTTPException(status_code=404, detail="Produto não encontrado")
 
-        db.delete(produto)
-        db.commit()
+    db.delete(produto)
+    db.commit()
 
-        return None
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erro ao deletar produto: {str(e)}"
-        )
+    return {"message": "Produto deletado"}

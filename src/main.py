@@ -3,6 +3,7 @@ import uvicorn
 from contextlib import asynccontextmanager
 
 from src.settings import HOST, PORT, RELOAD
+from src.routers import AuthRouter
 from src.routers import FuncionarioRouter
 from src.routers import ClienteRouter
 from src.routers import ProdutoRouter
@@ -32,6 +33,7 @@ async def root():
 app.include_router(FuncionarioRouter.router)
 app.include_router(ClienteRouter.router)
 app.include_router(ProdutoRouter.router)
+app.include_router(AuthRouter.router)
 
 
 if __name__ == "__main__":
