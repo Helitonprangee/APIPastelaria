@@ -1,27 +1,70 @@
-# Roberto Antunes Souza
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
-from src.settings import STR_DATABASE
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from src.settings import STR_DATABASE, ASYNC_STR_DATABASE
 
-# cria o engine do banco de dados
-engine = create_engine(STR_DATABASE, echo=True)
+# =========================
+# ENGINE SÍNCRONO (legado)
+# =========================
+engine = create_engine(
+    STR_DATABASE,
+    echo=True,
+    future=True
+)
 
-# cria a sessão do banco de dados
-Session = sessionmaker(bind=engine, autocommit=False, autoflush=True) #autoflush eh tipo um refresh
+# =========================
+# ENGINE ASSÍNCRONO
+# =========================
+async_engine = create_async_engine(
+    ASYNC_STR_DATABASE,
+    echo=True,
+    future=True
+)
 
-# para trabalhar com tabelas
+# =========================
+# SESSÃO SÍNCRONA (legado)
+# =========================
+SessionLocal = sessionmaker(
+    bind=engine,
+    autocommit=False,
+    autoflush=False
+)
+
+# =========================
+# SESSÃO ASSÍNCRONA
+# =========================
+AsyncSessionLocal = async_sessionmaker(
+    bind=async_engine,
+    class_=AsyncSession,
+    expire_on_commit=False
+)
+
+# =========================
+# BASE DOS MODELS
+# =========================
 Base = declarative_base()
 
-# cria, caso não existam, as tabelas de todos os modelos que encontrar na aplicação (importados)
+# =========================
+# CRIAR TABELAS
+# =========================
 async def cria_tabelas():
-    Base.metadata.create_all(engine)
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
-# dependência para injetar a sessão do banco de dados nas rotas
+# =========================
+# DEPENDÊNCIA SÍNCRONA (LEGADO)
+# =========================
 def get_db():
-    db_session = Session()
+    db = SessionLocal()
     try:
-        yield db_session
+        yield db
     finally:
-        db_session.close()
+        db.close()
+
+
+# =========================
+# DEPENDÊNCIA ASSÍNCRONA
+# =========================
+async def get_async_db():
+    async with AsyncSessionLocal() as session:
+        yield session
