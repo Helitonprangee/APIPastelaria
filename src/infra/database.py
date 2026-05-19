@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from src.settings import STR_DATABASE, ASYNC_STR_DATABASE
+from  settings import STR_DATABASE, ASYNC_STR_DATABASE
 
 # =========================
 # ENGINE SÍNCRONO (legado)

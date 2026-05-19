@@ -1,5 +1,5 @@
 # Heliton
-from src.infra import database
+from  infra import database
 from sqlalchemy import Column, VARCHAR, Integer, Float, LargeBinary
 
 # ORM

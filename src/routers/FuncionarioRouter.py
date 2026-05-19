@@ -1,25 +1,24 @@
-# Heliton
-
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
-from src.services.AuditoriaService import AuditoriaService
-from src.infra.rate_limit import limiter, get_rate_limit
+from services.AuditoriaService import AuditoriaService
+from infra.rate_limit import limiter, get_rate_limit
 
 # Domain Schemas
-from src.domain.schemas.FuncionarioSchema import (
+from domain.schemas.FuncionarioSchema import (
     FuncionarioCreate,
     FuncionarioUpdate,
     FuncionarioResponse
 )
-from src.domain.schemas.AuthSchema import FuncionarioAuth
+from domain.schemas.AuthSchema import FuncionarioAuth
 
 # Infra
-from src.infra.orm.FuncionarioModel import FuncionarioDB
-from src.infra.database import get_async_db
-from src.infra.security import get_password_hash
-from src.infra.dependencies import require_group
+from infra.orm.FuncionarioModel import FuncionarioDB
+from infra.database import get_async_db
+from infra.security import get_password_hash
+from infra.dependencies import require_group
 
 router = APIRouter()
 
@@ -31,12 +30,13 @@ router = APIRouter()
     status_code=status.HTTP_200_OK
 )
 async def get_funcionarios(
-    db: Session = Depends(get_async_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: FuncionarioAuth = Depends(require_group([1]))
 ):
     """Retorna todos os funcionários"""
     try:
-        funcionarios = db.query(FuncionarioDB).all()
+        result = await db.execute(select(FuncionarioDB))
+        funcionarios = result.scalars().all()
         return funcionarios
 
     except Exception as e:
@@ -54,12 +54,15 @@ async def get_funcionarios(
 )
 async def get_funcionario_por_id(
     id: int,
-    db: Session = Depends(get_async_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: FuncionarioAuth = Depends(require_group([1]))
 ):
     """Retorna um funcionário específico pelo ID"""
     try:
-        funcionario = db.query(FuncionarioDB).filter(FuncionarioDB.id == id).first()
+        result = await db.execute(
+            select(FuncionarioDB).where(FuncionarioDB.id == id)
+        )
+        funcionario = result.scalars().first()
 
         if not funcionario:
             raise HTTPException(
@@ -87,14 +90,15 @@ async def get_funcionario_por_id(
 async def post_funcionario(
     request: Request,
     funcionario_data: FuncionarioCreate,
-    db: Session = Depends(get_async_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: FuncionarioAuth = Depends(require_group([1]))
 ):
     """Cria um novo funcionário"""
     try:
-        existing_funcionario = db.query(FuncionarioDB).filter(
-            FuncionarioDB.cpf == funcionario_data.cpf
-        ).first()
+        result = await db.execute(
+            select(FuncionarioDB).where(FuncionarioDB.cpf == funcionario_data.cpf)
+        )
+        existing_funcionario = result.scalars().first()
 
         if existing_funcionario:
             raise HTTPException(
@@ -115,8 +119,8 @@ async def post_funcionario(
         )
 
         db.add(novo_funcionario)
-        db.commit()
-        db.refresh(novo_funcionario)
+        await db.commit()
+        await db.refresh(novo_funcionario)
 
         await AuditoriaService.registrar_acao(
             db=db,
@@ -134,7 +138,7 @@ async def post_funcionario(
     except HTTPException:
         raise
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erro ao criar funcionário: {str(e)}"
@@ -152,12 +156,15 @@ async def put_funcionario(
     request: Request,
     id: int,
     funcionario_data: FuncionarioUpdate,
-    db: Session = Depends(get_async_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: FuncionarioAuth = Depends(require_group([1]))
 ):
     """Atualiza um funcionário existente"""
     try:
-        funcionario = db.query(FuncionarioDB).filter(FuncionarioDB.id == id).first()
+        result = await db.execute(
+            select(FuncionarioDB).where(FuncionarioDB.id == id)
+        )
+        funcionario = result.scalars().first()
 
         if not funcionario:
             raise HTTPException(
@@ -169,9 +176,10 @@ async def put_funcionario(
         existing_funcionario = None
 
         if funcionario_data.cpf and funcionario_data.cpf != funcionario.cpf:
-            existing_funcionario = db.query(FuncionarioDB).filter(
-                FuncionarioDB.cpf == funcionario_data.cpf
-            ).first()
+            result = await db.execute(
+                select(FuncionarioDB).where(FuncionarioDB.cpf == funcionario_data.cpf)
+            )
+            existing_funcionario = result.scalars().first()
 
         if existing_funcionario:
             raise HTTPException(
@@ -194,8 +202,8 @@ async def put_funcionario(
         for field, value in update_data.items():
             setattr(funcionario, field, value)
 
-        db.commit()
-        db.refresh(funcionario)
+        await db.commit()
+        await db.refresh(funcionario)
 
         await AuditoriaService.registrar_acao(
             db=db,
@@ -213,7 +221,7 @@ async def put_funcionario(
     except HTTPException:
         raise
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erro ao atualizar funcionário: {str(e)}"
@@ -230,12 +238,15 @@ async def put_funcionario(
 async def delete_funcionario(
     request: Request,
     id: int,
-    db: Session = Depends(get_async_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: FuncionarioAuth = Depends(require_group([1]))
 ):
     """Remove um funcionário"""
     try:
-        funcionario = db.query(FuncionarioDB).filter(FuncionarioDB.id == id).first()
+        result = await db.execute(
+            select(FuncionarioDB).where(FuncionarioDB.id == id)
+        )
+        funcionario = result.scalars().first()
 
         if not funcionario:
             raise HTTPException(
@@ -246,8 +257,8 @@ async def delete_funcionario(
         dados_antigos_obj = funcionario.__dict__.copy()
         funcionario_id_removido = funcionario.id
 
-        db.delete(funcionario)
-        db.commit()
+        await db.delete(funcionario)
+        await db.commit()
 
         await AuditoriaService.registrar_acao(
             db=db,
@@ -265,7 +276,7 @@ async def delete_funcionario(
     except HTTPException:
         raise
     except Exception as e:
-        db.rollback()
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erro ao deletar funcionário: {str(e)}"

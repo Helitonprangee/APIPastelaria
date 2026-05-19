@@ -3,18 +3,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List
 
-from src.domain.schemas.ClienteSchema import (
+from  domain.schemas.ClienteSchema import (
     ClienteCreate,
     ClienteUpdate,
     ClienteResponse
 )
-from src.domain.schemas.AuthSchema import FuncionarioAuth
+from  domain.schemas.AuthSchema import FuncionarioAuth
 
-from src.infra.orm.ClienteModel import ClienteDB
-from src.infra.database import get_async_db
-from src.infra.dependencies import get_current_active_user
-from src.infra.rate_limit import limiter, get_rate_limit
-from src.services.AuditoriaService import AuditoriaService
+from  infra.orm.ClienteModel import ClienteDB
+from  infra.database import get_async_db
+from  infra.dependencies import get_current_active_user
+from  infra.rate_limit import limiter, get_rate_limit
+from  services.AuditoriaService import AuditoriaService
 
 router = APIRouter()
 

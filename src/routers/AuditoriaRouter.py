@@ -4,13 +4,13 @@ from sqlalchemy import desc, select, func
 from typing import List, Optional
 from datetime import datetime, timedelta
 
-from src.domain.schemas.AuditoriaSchema import AuditoriaResponse
-from src.domain.schemas.AuthSchema import FuncionarioAuth
-from src.infra.orm.AuditoriaModel import AuditoriaDB
-from src.infra.orm.FuncionarioModel import FuncionarioDB
-from src.infra.database import get_async_db
-from src.infra.dependencies import require_group
-from src.infra.rate_limit import limiter, get_rate_limit
+from  domain.schemas.AuditoriaSchema import AuditoriaResponse
+from  domain.schemas.AuthSchema import FuncionarioAuth
+from  infra.orm.AuditoriaModel import AuditoriaDB
+from  infra.orm.FuncionarioModel import FuncionarioDB
+from  infra.database import get_async_db
+from  infra.dependencies import require_group
+from  infra.rate_limit import limiter, get_rate_limit
 
 router = APIRouter()
 

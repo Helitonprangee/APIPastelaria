@@ -4,7 +4,7 @@ from jose import JWTError, jwt
 import bcrypt
 from fastapi import HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer
-from src.settings import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS
+from  settings import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 

@@ -5,21 +5,21 @@ from sqlalchemy import select, func
 from typing import List, Optional
 from datetime import datetime
 
-from src.domain.schemas.ComandaSchema import (
+from  domain.schemas.ComandaSchema import (
     ComandaCreate, ComandaUpdate, ComandaResponse, FuncionarioResponse, ClienteResponse,
     ComandaProdutosCreate, ComandaProdutosUpdate, ComandaProdutosResponse, ProdutoResponse
 )
-from src.domain.schemas.AuthSchema import FuncionarioAuth
+from  domain.schemas.AuthSchema import FuncionarioAuth
 
 
-from src.infra.orm.ComandaModel import ComandaDB, ComandaProdutoDB
-from src.infra.orm.ProdutoModel import ProdutoDB
-from src.infra.orm.FuncionarioModel import FuncionarioDB
-from src.infra.orm.ClienteModel import ClienteDB
-from src.infra.database import get_async_db
-from src.infra.dependencies import require_group, get_current_active_user
-from src.infra.rate_limit import limiter
-from src.services.AuditoriaService import AuditoriaService
+from  infra.orm.ComandaModel import ComandaDB, ComandaProdutoDB
+from  infra.orm.ProdutoModel import ProdutoDB
+from  infra.orm.FuncionarioModel import FuncionarioDB
+from  infra.orm.ClienteModel import ClienteDB
+from  infra.database import get_async_db
+from  infra.dependencies import require_group, get_current_active_user
+from  infra.rate_limit import limiter
+from  services.AuditoriaService import AuditoriaService
 
 router = APIRouter()
 

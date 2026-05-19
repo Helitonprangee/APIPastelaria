@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
-from src.infra.database import Base
+from  infra.database import Base
 
 class AuditoriaDB(Base):
     """Modelo para registrar auditoria de acessos e ações"""

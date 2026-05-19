@@ -4,7 +4,7 @@ from typing import Optional, Dict, Any
 from datetime import datetime
 import json
 
-from src.infra.orm.AuditoriaModel import AuditoriaDB
+from  infra.orm.AuditoriaModel import AuditoriaDB
 
 
 class AuditoriaService:

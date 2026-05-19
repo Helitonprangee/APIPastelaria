@@ -1,18 +1,24 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import timedelta
 
-from src.domain.schemas.AuthSchema import LoginRequest, TokenResponse, RefreshTokenRequest, FuncionarioAuth
-from src.infra.orm.FuncionarioModel import FuncionarioDB
-from src.infra.database import get_db
-from src.infra.security import (
+from domain.schemas.AuthSchema import (
+    LoginRequest,
+    TokenResponse,
+    RefreshTokenRequest,
+    FuncionarioAuth
+)
+from infra.orm.FuncionarioModel import FuncionarioDB
+from infra.database import get_async_db
+from infra.security import (
     verify_password,
     create_access_token,
     create_refresh_token,
     verify_refresh_token
 )
-from src.infra.dependencies import get_current_active_user
-from src.settings import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS
+from infra.dependencies import get_current_active_user
+from settings import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS
 
 router = APIRouter()
 
@@ -28,10 +34,13 @@ router = APIRouter()
 )
 async def login(
     login_data: LoginRequest,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     try:
-        funcionario = db.query(FuncionarioDB).filter(FuncionarioDB.cpf == login_data.cpf).first()
+        result = await db.execute(
+            select(FuncionarioDB).where(FuncionarioDB.cpf == login_data.cpf)
+        )
+        funcionario = result.scalars().first()
 
         if not funcionario:
             raise HTTPException(
@@ -47,7 +56,6 @@ async def login(
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        # ACCESS TOKEN
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
             data={
@@ -58,7 +66,6 @@ async def login(
             expires_delta=access_token_expires
         )
 
-        # REFRESH TOKEN
         refresh_token = create_refresh_token(
             data={
                 "sub": funcionario.cpf,
@@ -95,14 +102,16 @@ async def login(
 )
 async def refresh_token(
     refresh_data: RefreshTokenRequest,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     try:
         payload = verify_refresh_token(refresh_data.refresh_token)
-
         cpf = payload.get("sub")
 
-        funcionario = db.query(FuncionarioDB).filter(FuncionarioDB.cpf == cpf).first()
+        result = await db.execute(
+            select(FuncionarioDB).where(FuncionarioDB.cpf == cpf)
+        )
+        funcionario = result.scalars().first()
 
         if not funcionario:
             raise HTTPException(

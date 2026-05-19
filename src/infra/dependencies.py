@@ -2,10 +2,10 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
-from src.infra.database import get_db
-from src.infra.orm.FuncionarioModel import FuncionarioDB
-from src.infra.security import verify_access_token
-from src.domain.schemas.AuthSchema import FuncionarioAuth
+from  infra.database import get_db
+from  infra.orm.FuncionarioModel import FuncionarioDB
+from  infra.security import verify_access_token
+from  domain.schemas.AuthSchema import FuncionarioAuth
 
 # Authorize pedindo só o token
 security = HTTPBearer()

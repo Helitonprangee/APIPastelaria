@@ -2,8 +2,8 @@ from fastapi import APIRouter, HTTPException, status
 from sqlalchemy import text
 from datetime import datetime, timezone
 import psutil
-from src.infra.database import get_db
-from src.infra.orm.FuncionarioModel import FuncionarioDB
+from  infra.database import get_db
+from  infra.orm.FuncionarioModel import FuncionarioDB
 
 router = APIRouter()
 

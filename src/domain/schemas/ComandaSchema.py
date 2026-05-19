@@ -1,9 +1,9 @@
 from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
-from src.domain.schemas.FuncionarioSchema import FuncionarioResponse
-from src.domain.schemas.ClienteSchema import ClienteResponse
-from src.domain.schemas.ProdutoSchema import ProdutoResponse
+from  domain.schemas.FuncionarioSchema import FuncionarioResponse
+from  domain.schemas.ClienteSchema import ClienteResponse
+from  domain.schemas.ProdutoSchema import ProdutoResponse
 
 
 class ComandaCreate(BaseModel):

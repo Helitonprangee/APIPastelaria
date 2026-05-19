@@ -1,5 +1,7 @@
+#Heliton marcondes Prange
+
 from sqlalchemy import Column, VARCHAR, DECIMAL, Integer, DateTime, ForeignKey
-from src.infra.database import Base
+from  infra.database import Base
 
 
 class ComandaDB(Base):
