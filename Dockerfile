@@ -40,5 +40,5 @@ USER appuser
 EXPOSE 4443/tcp
 EXPOSE 4443/udp
 
-ENTRYPOINT ["hypercorn", "--certfile=/cert/cert.pem", "--keyfile=/cert/ecc-key.pem"]
+ENTRYPOINT ["hypercorn", "--certfile=/cert/cert.pem", "--keyfile=/cert/key.pem"]
 CMD ["--bind", "0.0.0.0:4443", "--quic-bind", "0.0.0.0:4443", "main:app"]

@@ -16,6 +16,7 @@ from routers import FuncionarioRouter
 from routers import ClienteRouter
 from routers import ProdutoRouter
 from routers import ComandaRouter
+from routers import RecebimentoRouter
 from routers import HealthRouter
 
 
@@ -24,7 +25,7 @@ from routers import HealthRouter
 async def lifespan(app: FastAPI):
     # executa no startup
     print("API has started")
-    #await database.cria_tabelas()
+    await database.cria_tabelas()
     yield
     # executa no shutdown
     print("API is shutting down")
@@ -71,7 +72,7 @@ app.include_router(FuncionarioRouter.router)
 app.include_router(ClienteRouter.router)
 app.include_router(ProdutoRouter.router)
 app.include_router(ComandaRouter.router)
-# app.include_router(RecebimentoRouter.router)
+app.include_router(RecebimentoRouter.router)
 app.include_router(HealthRouter.router)
 
 

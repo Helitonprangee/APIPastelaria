@@ -1,12 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
+from typing import List, Optional
 
 from services.AuditoriaService import AuditoriaService
 from infra.rate_limit import limiter, get_rate_limit
 
-# Domain Schemas
 from domain.schemas.FuncionarioSchema import (
     FuncionarioCreate,
     FuncionarioUpdate,
@@ -14,7 +13,6 @@ from domain.schemas.FuncionarioSchema import (
 )
 from domain.schemas.AuthSchema import FuncionarioAuth
 
-# Infra
 from infra.orm.FuncionarioModel import FuncionarioDB
 from infra.database import get_async_db
 from infra.security import get_password_hash
@@ -30,12 +28,16 @@ router = APIRouter()
     status_code=status.HTTP_200_OK
 )
 async def get_funcionarios(
+    cpf: Optional[str] = None,
     db: AsyncSession = Depends(get_async_db),
     current_user: FuncionarioAuth = Depends(require_group([1]))
 ):
     """Retorna todos os funcionários"""
     try:
-        result = await db.execute(select(FuncionarioDB))
+        query = select(FuncionarioDB)
+        if cpf:
+            query = query.where(FuncionarioDB.cpf == cpf)
+        result = await db.execute(query)
         funcionarios = result.scalars().all()
         return funcionarios
 
